@@ -1,0 +1,20 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: CMake
+      run: cmake CMakeLists.txt
+    - name: make
+      run: make
+    - name: make distcheck
+      run: make distcheck
