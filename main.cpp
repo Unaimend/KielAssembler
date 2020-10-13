@@ -1,31 +1,28 @@
 
 #include <iostream>
 #include "deBruijn/DeBruijnGraph.h"
+#include "lib/cxxopts.h"
+#include "lib/bioio.hpp"
+#include "fstream"
 int main(int argc, char** argv)
 {
-    std::cout << "Hello, World!" << std::endl;
-
-    char test[] = "t";
-    auto a = DeBruijnGraph("AGGCCCTGAAGC", 4);
-    /*for(const auto& it : a.kmerToNode)
+    std::string line;
+    std::string text;
+    std::ifstream myfile ("../data/simulated/ecoli/ecoli1.fna");
+    auto record = bioio::read_fasta(myfile, 10000);
+    for(const auto& it : record)
     {
-        std::cout << "T  " << it.first << it.second.kmer << std::endl;
-    }*/
-    for(const auto& it : a.graph)
-    {
-        std::cout << "SRC " << it.first.kmer << std::endl;
-        for(auto&  edge : it.second)
-        {
-            std::cout <<   "DEST:" <<  edge.kmer << std::endl;
-        }
-
+        text.append(it.sequence);
     }
-    auto pls = a.hasEulerianWalkdOrCycle();
-    std::cout << "---------------------------------------" << std::endl;
-    for(const auto& it : pls.value())
+    std::cout << "Text loaded" << " " << text.length() <<  std::endl;
+    auto a = DeBruijnGraph(text, 30);
+    std::cout << "Graph build" << std::endl;
+    auto tour = a.hasEulerianWalkdOrCycle();
+    for(const auto& it : tour.value())
     {
         std::cout << it.kmer << std::endl;
     }
+    std::cout << "FERTIG" << std::endl;
     //TODO find out if g is multimap or just 1 to many
     return 0;
 }

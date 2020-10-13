@@ -29,6 +29,10 @@ struct Node
     [[nodiscard]] bool isSemiBalanced() const;
     [[nodiscard]] bool isBalanced() const;
 
+    bool operator==(const Node& rhs)
+    {
+        return kmer == rhs.kmer;
+    }
     bool operator==(const Node& rhs) const
     {
         return kmer == rhs.kmer;

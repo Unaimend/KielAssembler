@@ -24,9 +24,10 @@ bool DeBruijnGraph::isEulerian() const {
     return hasEulerianWalk() or hasEulerianCycle();
 }
 
-void visit(std::vector<Node>& tour, const Node& n, std::unordered_map<Node, std::vector<Node>> graph)
+//TODO Das der letzte Param keine ref sein?
+void visit(std::vector<Node>& tour, const Node& n, std::unordered_map<Node, std::vector<Node>>& graph)
 {
-    while(!graph[n].empty())
+    while(!graph.at(n).empty())
     {
         Node dst = graph[n].back();
         graph[n].pop_back();
@@ -35,7 +36,6 @@ void visit(std::vector<Node>& tour, const Node& n, std::unordered_map<Node, std:
     tour.push_back(n);
 };
 
-
 std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
 
     if (!isEulerian())
@@ -43,8 +43,6 @@ std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
         return std::optional<std::vector<Node>>{};
     }
     std::unordered_map<Node, std::vector<Node>> temp = graph;
-    std::cout << "WAL" << hasEulerianWalk() << std::endl;
-    std::cout << "CYCLE" << hasEulerianCycle() << std::endl;
     if(hasEulerianWalk())
     {
         try{
@@ -58,8 +56,6 @@ std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
     //TODO CHECK IF CORRECT
     std::vector<Node> tour{};
     const Node& src = temp.begin()->first;
-    std::cout << "TAIL" << tail.kmer << std::endl;
-    std::cout << "SRRRCC" << src.kmer  << std::endl;
 
     /*std::function<void(const Node&)> visit;
     visit = [&temp, &visit, &tour](const Node& n) mutable
@@ -75,10 +71,6 @@ std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
      */
     visit(tour, src, temp);
 
-    for(const auto& it : tour)
-    {
-        std::cout << "LOL " << it.kmer << std::endl;
-    }
     std::reverse(tour.begin(), tour.end());
     //Remove last element
     tour.erase(tour.end()-1);
@@ -86,7 +78,6 @@ std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
     if(hasEulerianWalk())
     {
         auto sti = std::find(tour.begin(), tour.end(), head);
-        std::cout << "WHJY" << sti->kmer << std::endl;
         //TODO USELESS COPY
         std::vector<Node> t;
         for(auto it = sti; it < tour.end(); ++it)
@@ -114,11 +105,8 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
         Node* nodeL;
         Node* nodeR;
         kmer = sequenceToAssemble.substr(i, kmerLength);
-        std::cout << "K   " << kmer << std::endl;
         kmerL = kmer.substr(0, (kmerLength-1));
-        std::cout << "L   " << kmerL << std::endl;
         kmerR = kmer.substr(1, kmerLength);
-        std::cout << "R   " << kmerR << std::endl;
 
         try
         {
