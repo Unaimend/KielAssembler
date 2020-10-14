@@ -10,6 +10,7 @@
 #include <vector>
 #include <iostream>
 #include <functional>
+#include <memory>
 struct Node
 {
 
@@ -24,7 +25,11 @@ struct Node
     int inDegree{};
     // Number of outgoing edges
     int outDegree{};
-
+    std::vector<Node*> connectedNodes;
+    int degree() const
+    {
+        return inDegree + outDegree;
+    }
     //Moving those somewhere else should save space
     [[nodiscard]] bool isSemiBalanced() const;
     [[nodiscard]] bool isBalanced() const;
@@ -65,14 +70,11 @@ public:
 
     std::optional<std::vector<Node>> hasEulerianWalkdOrCycle();
 
-
-
-    //Maps Kmers to Node Objects
-    std::unordered_map<std::string, Node> kmerToNode;
-    std::unordered_map<Node, std::vector<Node>> graph;
-
-    Node head;
-    Node tail;
+   //Maps Kmers to Node Objects
+    std::unordered_map<std::string, std::unique_ptr<Node>> kmerToNode;
+    void visit(std::vector<Node>& tour, Node* src);
+    Node* head;
+    Node* tail;
 
     int kmerLength;
     int semi = 0;

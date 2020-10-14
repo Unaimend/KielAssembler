@@ -3,6 +3,8 @@
 //
 
 #include "DeBruijnGraph.h"
+#include <memory>
+#include <stack>
 
 bool Node::isBalanced() const {
     return inDegree == outDegree
@@ -42,34 +44,65 @@ std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
     {
         return std::optional<std::vector<Node>>{};
     }
-    std::unordered_map<Node, std::vector<Node>> temp = graph;
+    //BRAUCH MAN DAS
+    //std::unordered_map<Node, std::vector<Node>> temp = graph;
+
     if(hasEulerianWalk())
     {
+        //Make it to an eulerian cycle
         try{
-            // if graph contains l add NodeR as destination
-            //TODO find out if g is multimap or just 1 to many
-            temp.at(tail).push_back(head);
+            //TODO DAS WIRD NET AKTUALISIERT
+            kmerToNode.at(tail->kmer)->connectedNodes.push_back(head);
+            ++kmerToNode.at(tail->kmer)->outDegree;
+            ++head->inDegree;
         } catch (std::out_of_range& exception) {
-            temp[tail] = std::vector<Node>{head};
+            //TODO DAS AUCH NET
+            kmerToNode[tail->kmer]->connectedNodes = std::vector<Node*>{head};
+            ++kmerToNode.at(tail->kmer)->outDegree;
+            ++head->inDegree;
         }
     }
-    //TODO CHECK IF CORRECT
     std::vector<Node> tour{};
-    const Node& src = temp.begin()->first;
-
-    /*std::function<void(const Node&)> visit;
-    visit = [&temp, &visit, &tour](const Node& n) mutable
+    Node* src =  kmerToNode.begin()->second.get();
+    /*
+    std::function<void(const Node*)> visit;
+    visit = [this, &visit, &tour](const Node* n) mutable
     {
-        while(!temp[n].empty())
+        //solange wir nodes haben zu denen wir connecten
+        while(!kmerToNode[n->kmer]->connectedNodes.empty())
         {
-            Node dst = temp[n].back();
-            temp[n].pop_back();
+            Node* dst = kmerToNode[n->kmer]->connectedNodes.back();
+            kmerToNode[n->kmer]->connectedNodes.pop_back();
             visit(dst);
         }
-        tour.push_back(n);
+        tour.push_back(*n);
     };
-     */
-    visit(tour, src, temp);
+    */
+    //visit(tour, src);
+
+    std::stack<Node*> nodes;
+    nodes.push(src);
+    while(!nodes.empty())
+    {
+       auto& v = nodes.top();
+       if(v->outDegree == 0)
+       {
+           tour.push_back(*v);
+           nodes.pop();
+       }
+       else
+       {
+            //Find outgoing edgr
+            auto j = kmerToNode[v->kmer]->connectedNodes.back();
+            //Remove it from graph
+            kmerToNode[v->kmer]->connectedNodes.pop_back();
+            //since we removed a edge we must decrease outgoing edges
+            --v->outDegree;
+            // TODO we probably have to remove in degree for this node too
+            //--kmerToNode[j->kmer]->inDegree;
+            nodes.push(j);
+       }
+    }
 
     std::reverse(tour.begin(), tour.end());
     //Remove last element
@@ -77,7 +110,7 @@ std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
 
     if(hasEulerianWalk())
     {
-        auto sti = std::find(tour.begin(), tour.end(), head);
+        auto sti = std::find(tour.begin(), tour.end(), *head);
         //TODO USELESS COPY
         std::vector<Node> t;
         for(auto it = sti; it < tour.end(); ++it)
@@ -110,48 +143,48 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
 
         try
         {
-            nodeL = &kmerToNode.at(kmerL);
+            //If objects with this kmer already exist dont make a new one
+            nodeL = kmerToNode.at(kmerL).get();
         } catch (std::out_of_range& exception)
         {
-            nodeL = &(kmerToNode[kmerL] = Node(kmerL));
+            //if object with this kmers doenst exist make a one and store a pointer to it in the map
+            kmerToNode[kmerL] = std::make_unique<Node>(kmerL);
+            //set nodeL to this pointer
+            nodeL = kmerToNode[kmerL].get();
         }
 
         try
         {
-            nodeR = &kmerToNode.at(kmerR);
+            //check if object with this kmer exists if yes get it'
+            nodeR = kmerToNode.at(kmerR).get();
         } catch (std::out_of_range& exception)
         {
-            nodeR = &(kmerToNode[kmerR] = Node(kmerR));
+            //if object with this kmers doenst exist make a one and store a pointer to it in the map
+            kmerToNode[kmerR] = std::make_unique<Node>(kmerR);
+            //set nodeL to this pointer
+            nodeR = kmerToNode[kmerR].get();
         }
-
         nodeR->inDegree += 1;
         nodeL->outDegree += 1;
-
-        try{
-            // if graph contains l add NodeR as destination
-            //TODO find out if g is multimap or just 1 to many
-            graph.at(*nodeL).push_back(*nodeR);
-        } catch (std::out_of_range& exception) {
-            graph[*nodeL] = std::vector<Node>{*nodeR};
-        }
+        nodeL->connectedNodes.push_back(nodeR);
     }
 
     for(const auto& it : kmerToNode)
     {
         const auto& node = it.second;
-        if(node.isBalanced())
+        if(node->isBalanced())
         {
             balanced += 1;
         }
-        else if (node.isSemiBalanced())
+        else if (node->isSemiBalanced())
         {
-            if(node.inDegree == node.outDegree + 1)
+            if(node->inDegree == node->outDegree + 1)
             {
-                tail = node;
+                tail = node.get();
             }
-            if(node.inDegree == node.outDegree - 1)
+            if(node->inDegree == node->outDegree - 1)
             {
-                head = node;
+                head = node.get();
             }
             semi += 1;
         }
@@ -161,4 +194,16 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
         }
     }
 
+}
+
+void DeBruijnGraph::visit(std::vector<Node> &tour, Node *n) {
+
+    //solange wir nodes haben zu denen wir connecten
+    while(!kmerToNode[n->kmer]->connectedNodes.empty())
+    {
+        Node* dst = kmerToNode[n->kmer]->connectedNodes.back();
+        kmerToNode[n->kmer]->connectedNodes.pop_back();
+        visit(tour, dst);
+    }
+    tour.push_back(*n);
 }
