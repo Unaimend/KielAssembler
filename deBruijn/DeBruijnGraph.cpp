@@ -31,7 +31,7 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
 
     if (!isEulerian())
     {
-        return std::optional<DeBruijnGraph::TourType>{};
+        return std::optional<std::vector<Node>>{};
     }
     //BRAUCH MAN DAS
     //std::unordered_map<Node, std::vector<Node>> temp = graph;
@@ -51,7 +51,7 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
             ++head->inDegree;
         }
     }
-    DeBruijnGraph::TourType tour{};
+    std::vector<Node> tour{};
     Node* src =  kmerToNode.begin()->second.get();
 
     std::stack<Node*> nodes;
