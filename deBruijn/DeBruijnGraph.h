@@ -68,7 +68,9 @@ public:
 
     bool isEulerian() const;
 
-    std::optional<std::vector<Node>> hasEulerianWalkdOrCycle();
+    using TourType = std::vector<Node>;
+
+    std::optional<TourType> hasEulerianWalkdOrCycle();
 
    //Maps Kmers to Node Objects
     std::unordered_map<std::string, std::unique_ptr<Node>> kmerToNode;

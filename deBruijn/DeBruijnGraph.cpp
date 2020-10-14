@@ -5,7 +5,7 @@
 #include "DeBruijnGraph.h"
 #include <memory>
 #include <stack>
-
+#include <list>
 bool Node::isBalanced() const {
     return inDegree == outDegree
 ;}
@@ -26,19 +26,8 @@ bool DeBruijnGraph::isEulerian() const {
     return hasEulerianWalk() or hasEulerianCycle();
 }
 
-//TODO Das der letzte Param keine ref sein?
-void visit(std::vector<Node>& tour, const Node& n, std::unordered_map<Node, std::vector<Node>>& graph)
-{
-    while(!graph.at(n).empty())
-    {
-        Node dst = graph[n].back();
-        graph[n].pop_back();
-        visit(tour, dst, graph);
-    }
-    tour.push_back(n);
-};
 
-std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
+std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
 
     if (!isEulerian())
     {
@@ -64,21 +53,6 @@ std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
     }
     std::vector<Node> tour{};
     Node* src =  kmerToNode.begin()->second.get();
-    /*
-    std::function<void(const Node*)> visit;
-    visit = [this, &visit, &tour](const Node* n) mutable
-    {
-        //solange wir nodes haben zu denen wir connecten
-        while(!kmerToNode[n->kmer]->connectedNodes.empty())
-        {
-            Node* dst = kmerToNode[n->kmer]->connectedNodes.back();
-            kmerToNode[n->kmer]->connectedNodes.pop_back();
-            visit(dst);
-        }
-        tour.push_back(*n);
-    };
-    */
-    //visit(tour, src);
 
     std::stack<Node*> nodes;
     nodes.push(src);
@@ -124,7 +98,7 @@ std::optional<std::vector<Node>> DeBruijnGraph::hasEulerianWalkdOrCycle(){
 
         return std::optional<std::vector<Node>>{t};
     }
-    return std::optional<std::vector<Node>>{tour};
+    return std::optional<TourType>{tour};
 
 }
 
@@ -195,7 +169,7 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
     }
 
 }
-
+/*
 void DeBruijnGraph::visit(std::vector<Node> &tour, Node *n) {
 
     //solange wir nodes haben zu denen wir connecten
@@ -207,3 +181,4 @@ void DeBruijnGraph::visit(std::vector<Node> &tour, Node *n) {
     }
     tour.push_back(*n);
 }
+*/
