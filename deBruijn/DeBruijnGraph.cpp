@@ -6,6 +6,8 @@
 #include <memory>
 #include <stack>
 #include <list>
+#include <fstream>
+
 bool Node::isBalanced() const {
     return inDegree == outDegree
 ;}
@@ -13,6 +15,7 @@ bool Node::isBalanced() const {
 bool Node::isSemiBalanced() const {
     return abs(inDegree - outDegree) == 1;
 }
+
 
 bool DeBruijnGraph::hasEulerianWalk() const {
     return neither == 0 && semi == 2;
@@ -168,6 +171,22 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
         }
     }
 
+}
+
+void DeBruijnGraph::toDot() {
+    std::ofstream myfile;
+    myfile.open ("example.dot", std::ios::out );
+    myfile << "digraph {\n";
+    for(const auto& it : kmerToNode)
+    {
+        for(const auto& it2: it.second->connectedNodes)
+        {
+            myfile << it.second->kmer << "->" << it2->kmer << "\n";
+        }
+
+    }
+    myfile << "}";
+    myfile.close();
 }
 /*
 void DeBruijnGraph::visit(std::vector<Node> &tour, Node *n) {

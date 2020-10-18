@@ -75,6 +75,7 @@ public:
    //Maps Kmers to Node Objects
     std::unordered_map<std::string, std::unique_ptr<Node>> kmerToNode;
     void visit(std::vector<Node>& tour, Node* src);
+    void toDot();
     Node* head;
     Node* tail;
 
