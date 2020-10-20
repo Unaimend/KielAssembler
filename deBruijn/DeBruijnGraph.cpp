@@ -34,7 +34,7 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
 
     if (!isEulerian())
     {
-        return std::optional<std::vector<Node>>{};
+        return std::optional<TourType>{};
     }
     //BRAUCH MAN DAS
     //std::unordered_map<Node, std::vector<Node>> temp = graph;
@@ -54,7 +54,7 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
             ++head->inDegree;
         }
     }
-    std::vector<Node> tour{};
+    TourType tour{};
     Node* src =  kmerToNode.begin()->second.get();
 
     std::stack<Node*> nodes;
@@ -64,7 +64,8 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
        auto& v = nodes.top();
        if(v->outDegree == 0)
        {
-           tour.push_back(*v);
+           //Useless copy
+           tour.push_back(v);
            nodes.pop();
        }
        else
@@ -85,11 +86,14 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
     //Remove last element
     tour.erase(tour.end()-1);
 
+
     if(hasEulerianWalk())
     {
-        auto sti = std::find(tour.begin(), tour.end(), *head);
+        std::cout << "CALLED" << std::endl;
+        //TODO this linke seem dangerours
+        auto sti = std::find(tour.begin(), tour.end(), head);
         //TODO USELESS COPY
-        std::vector<Node> t;
+        TourType t;
         for(auto it = sti; it < tour.end(); ++it)
         {
             t.push_back(*it);
@@ -99,7 +103,7 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
             t.push_back(*it);
         }
 
-        return std::optional<std::vector<Node>>{t};
+        return std::optional<TourType>{t};
     }
     return std::optional<TourType>{tour};
 
@@ -135,7 +139,7 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
             //check if object with this kmer exists if yes get it'
             nodeR = kmerToNode.at(kmerR).get();
         } catch (std::out_of_range& exception)
-        {
+       {
             //if object with this kmers doenst exist make a one and store a pointer to it in the map
             kmerToNode[kmerR] = std::make_unique<Node>(kmerR);
             //set nodeL to this pointer

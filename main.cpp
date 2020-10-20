@@ -13,7 +13,7 @@ int main(int argc, char** argv)
     std::string line;
     std::string text;
     std::ifstream myfile ("../data/simulated/ecoli/ecoli1.fna");
-    auto record = bioio::read_fasta(myfile ,5 );
+    auto record = bioio::read_fasta(myfile , 20000);
     for(const auto& it : record)
     {
         text.append(it.sequence);
@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     std::cout << "Text loaded" << " " << text.length() <<  std::endl;
 
     std::string fail = "AGGCCCTGAAGC";
-    auto a = DeBruijnGraph(fail, 4);
+    auto a = DeBruijnGraph(text, 31);
     a.toDot();
     std::cout << "Graph build" << std::endl;
     auto tour = a.hasEulerianWalkdOrCycle();

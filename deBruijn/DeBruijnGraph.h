@@ -17,7 +17,6 @@ struct Node
     Node() = default;
     explicit Node(std::string kmer_) : kmer(std::move(kmer_))
     {
-
     }
     //Text/Content of the node //TODO Test vs Char Array
     std::string kmer;
@@ -26,7 +25,7 @@ struct Node
     // Number of outgoing edges
     int outDegree{};
     std::vector<Node*> connectedNodes;
-    int degree() const
+    [[nodiscard]] int degree() const
     {
         return inDegree + outDegree;
     }
@@ -34,15 +33,15 @@ struct Node
     [[nodiscard]] bool isSemiBalanced() const;
     [[nodiscard]] bool isBalanced() const;
 
-    bool operator==(const Node& rhs)
-    {
-        return kmer == rhs.kmer;
-    }
-    bool operator==(const Node& rhs) const
+    bool operator==(Node& rhs) const
     {
         return kmer == rhs.kmer;
     }
 
+    bool operator==(const Node& rhs) const
+    {
+        return kmer == rhs.kmer;
+    }
 };
 
 
@@ -68,7 +67,7 @@ public:
 
     bool isEulerian() const;
 
-    using TourType = std::vector<Node>;
+    using TourType = std::vector<Node*>;
 
     std::optional<TourType> hasEulerianWalkdOrCycle();
 
