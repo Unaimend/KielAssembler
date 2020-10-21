@@ -122,11 +122,12 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
         kmerL = kmer.substr(0, (kmerLength-1));
         kmerR = kmer.substr(1, kmerLength);
 
-        try
+        const auto it = kmerToNode.find(kmerL);
+        if(it != kmerToNode.end())
         {
-            //If objects with this kmer already exist dont make a new one
-            nodeL = kmerToNode.at(kmerL).get();
-        } catch (std::out_of_range& exception)
+            nodeL =  it->second.get();
+        }
+        else
         {
             //if object with this kmers doenst exist make a one and store a pointer to it in the map
             kmerToNode[kmerL] = std::make_unique<Node>(kmerL);
@@ -134,11 +135,13 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
             nodeL = kmerToNode[kmerL].get();
         }
 
-        try
+        const auto it2 = kmerToNode.find(kmerR);
+        if(it2 != kmerToNode.end())
         {
             //check if object with this kmer exists if yes get it'
-            nodeR = kmerToNode.at(kmerR).get();
-        } catch (std::out_of_range& exception)
+            nodeR = it2->second.get();
+        }
+        else
        {
             //if object with this kmers doenst exist make a one and store a pointer to it in the map
             kmerToNode[kmerR] = std::make_unique<Node>(kmerR);
