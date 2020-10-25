@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "lib/easylogging++.h"
 #include <chrono>
+#include "deBruijn/Graph.h"
 INITIALIZE_EASYLOGGINGPP
 
 
@@ -35,14 +36,17 @@ int main(int argc, char** argv)
     LOG(INFO) << "GigaBytes loaded for the text string: " + std::to_string((float)text.size()/(1024.0*1024.0*1024.0));
 
     std::string fail = "AGGCCCTGAAGC";
+    std::string fail2 = "TAAGCTGATGTT"; //4 good, 3bad
+    std::string fail3 = "ATGCTGTAGCTAGATATCGTAGCTATGCTAGCTAATHGCTATTTCGATGCGGTAGCTAGTGCTAGCATGCGTATGCATGCGTACGGCTAGCTAGTAGAGCTCGACTACGACGACGAGAGGGCATCGACGATTAGAGACTAGCGACTACGAGCTAGCGACT";
 
     auto build_start = std::chrono::system_clock::now();
-    auto a = DeBruijnGraph(text, 31);
+    auto a = DeBruijnGraph(fail, 4);
     auto build_end = std::chrono::system_clock::now();
     LOG(INFO) << "Text building took: " + std::to_string(std::chrono::duration<double>((build_end - build_start)).count()/(60)) + " minutes";
-    //a.toDot();
-    std::cout << "Graph build" << std::endl;
+    //std::cout << "Graph build" << a.kmerToNode.size() << std::endl;
     auto tour = a.hasEulerianWalkdOrCycle();
+    //LOG(INFO) << "HEAD:     " + a.head->kmer ;
+    a.toDot();
     //TODO add tour to_dot
     //TODO find out if g is multimap or just 1 to many
     return 0;

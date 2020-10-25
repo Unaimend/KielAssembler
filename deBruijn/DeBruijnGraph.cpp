@@ -54,7 +54,12 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
             ++head->inDegree;
         }
     }
-    TourType tour{};
+    merge();
+    calculate_nodes();
+
+    return std::optional<TourType>{};
+    //TODO REBUILD kmerToNode
+    /*TourType tour{};
     Node* src =  kmerToNode.begin()->second.get();
 
     std::stack<Node*> nodes;
@@ -82,10 +87,11 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
        }
     }
 
+
+    //FIND OUT WHY
     std::reverse(tour.begin(), tour.end());
     //Remove last element
     tour.erase(tour.end()-1);
-
 
     if(hasEulerianWalk())
     {
@@ -106,6 +112,7 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
         return std::optional<TourType>{t};
     }
     return std::optional<TourType>{tour};
+    */
 
 }
 
@@ -153,6 +160,16 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
         nodeL->connectedNodes.push_back(nodeR);
     }
 
+    // Build contigs
+    calculate_nodes();
+
+}
+
+void DeBruijnGraph::calculate_nodes()
+{
+    balanced = 0;
+    semi = 0;
+    neither = 0;
     for(const auto& it : kmerToNode)
     {
         const auto& node = it.second;
@@ -177,7 +194,6 @@ DeBruijnGraph::DeBruijnGraph(const std::string &sequenceToAssemble, int kmerLeng
             neither += 1;
         }
     }
-
 }
 
 void DeBruijnGraph::toDot() {
@@ -195,16 +211,62 @@ void DeBruijnGraph::toDot() {
     myfile << "}";
     myfile.close();
 }
-/*
-void DeBruijnGraph::visit(std::vector<Node> &tour, Node *n) {
 
-    //solange wir nodes haben zu denen wir connecten
-    while(!kmerToNode[n->kmer]->connectedNodes.empty())
+
+void DeBruijnGraph::dfs(Node* src_)
+{
+    src_->marked = true;
+    auto beg = 0;
+    auto end = src_->connectedNodes.size();
+    while(beg < end)
     {
-        Node* dst = kmerToNode[n->kmer]->connectedNodes.back();
-        kmerToNode[n->kmer]->connectedNodes.pop_back();
-        visit(tour, dst);
+        //dont visited node twice
+        if(!(src_->connectedNodes[beg]->marked))
+        {
+            //TO STUFF HERE
+            //Safe to merge
+            if((src_->connectedNodes[beg])->inDegree == 1 && src_->outDegree == 1) {
+                //std::cout << beg << "CALL    " << src_->kmer  << std::endl;
+                //if outdegree > 1 we need to fix sth
+                //if ingegree > 1 we would fuck ptr
+                //add kmer so we dont loose information
+                //TODO MERGE CORRECTLY MUSS ICHC NIH NUR DEN LETZTEN RANPACKEN
+                char test = src_->connectedNodes[beg]->kmer.back();
+                src_->kmer.push_back(test);
+                //Add outgoig nodes from the src to our outgoing nodese
+                for (auto x : (src_->connectedNodes[beg])->connectedNodes) {
+                    src_->connectedNodes.push_back(x);
+                    src_->outDegree += 1;
+                }
+
+                //remove the currentcly watched at vertive, which muste be the beginn
+                //since outDegree == 1
+                //TODO IS POTENTIALLY DANGEROUS? Danglin ptr? da unique_ptr speicher freigibt
+                kmerToNode.erase((src_->connectedNodes[beg])->kmer);
+                src_->connectedNodes.erase(src_->connectedNodes.begin());
+                //haben ja einen weg gemacht
+                src_->outDegree--;
+                //irgendwas in die richtung muss sein
+                if(src_->outDegree == 1)
+                {
+                    //WR MUEDE KAOB RICHTIG, wenn wir uns nooch mal treffen
+                    // und immernoch out==1 haben adden
+                    src_->marked = 0;
+                    //soll fail2 fixen
+                }
+                dfs(src_);
+            }
+            else
+            {
+                dfs((src_->connectedNodes[beg]));
+            }
+        }
+        ++beg;
     }
-    tour.push_back(*n);
 }
-*/
+
+void DeBruijnGraph::merge()
+{
+    std::cout << "HEAD" << head->kmer << std::endl;
+    dfs(head);
+}

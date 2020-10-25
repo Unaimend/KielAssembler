@@ -20,6 +20,8 @@ struct Node
     }
     //Text/Content of the node //TODO Test vs Char Array
     std::string kmer;
+
+    int marked = 0;
     // Number of incoming edges
     int inDegree{};
     // Number of outgoing edges
@@ -83,6 +85,11 @@ public:
     int balanced = 0;
     int neither = 0;
 
+    void merge();
+
+    void dfs(Node *src_);
+
+    void calculate_nodes();
 };
 
 
