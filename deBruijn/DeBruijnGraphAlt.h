@@ -1,18 +1,18 @@
 //
-// Created by td on 10/24/20.
+// Created by Benno Doerr on 21/10/2020.
 //
 
-#ifndef KIELASSEMBLER_GRAPH_H
-#define KIELASSEMBLER_GRAPH_H
+#pragma once
+
 #include <cmath>
+#include <fstream>
 #include <limits>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-#include <fstream>
 
-class Graph {
+class DeBruijnGraphAlt {
     static constexpr size_t NONE = std::numeric_limits<size_t>::max();
     std::string m_sequence;
     std::vector<std::string_view> m_kmer;
@@ -46,7 +46,7 @@ class Graph {
         auto index = m_kmer.size();
 
         m_kmerMap.emplace( kmer, index );
-        m_kmer.emplace_back(  kmer  );
+        m_kmer.emplace_back( std::move( kmer ) );
         m_edgesIn.emplace_back();
         m_edgesOut.emplace_back();
         m_mergedWith.emplace_back( NONE );
@@ -77,12 +77,13 @@ class Graph {
     }
 
   public:
-    Graph( const std::string &sequenceToAssemble, size_t kmerLength ) : m_sequence( sequenceToAssemble ) {
+    DeBruijnGraphAlt( const std::string &sequenceToAssemble, size_t kmerLength ) : m_sequence( sequenceToAssemble ) {
         for ( size_t i = 0; i < m_sequence.size() - ( kmerLength - 1 ); i++ ) {
             auto kmerL = std::string_view( m_sequence.data() + i, kmerLength - 1 );
             auto kmerR = std::string_view( m_sequence.data() + i + 1, kmerLength - 1 );
             auto iNodeL = find_or_create_node( kmerL );
             auto iNodeR = find_or_create_node( kmerR );
+
             m_edgesOut[iNodeL].push_back( iNodeR );
             m_edgesIn[iNodeR].push_back( iNodeL );
         }
@@ -165,18 +166,18 @@ class Graph {
         return euler_path;
     }
 
-    void toDot(const std::string& filename) {
-        std::ofstream myfile;
-        myfile.open (filename, std::ios::out );
-        myfile << "digraph {\n";
-        for(size_t i = 0; i < m_edgesOut.size(); ++i) {
-            for (const auto& j: m_edgesOut[i]) {
-                myfile << m_kmer[i] << "->" << m_kmer[j] << "\n";
+    void toDot( const std::string &filename ) {
+        std::ofstream file;
+        file.open( filename, std::ios::out );
+        file << "digraph {\n";
+
+        for ( size_t i = 0; i < m_edgesOut.size(); i++ ) {
+            for ( const auto &j : m_edgesOut[i] ) {
+                file << m_kmer[i] << "->" << m_kmer[j] << "\n";
             }
         }
-        myfile << "}";
-        myfile.close();
+
+        file << "}";
+        file.close();
     }
 };
-
-#endif //KIELASSEMBLER_GRAPH_H
