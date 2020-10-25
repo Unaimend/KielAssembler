@@ -181,3 +181,4 @@ class DeBruijnGraphAlt {
         file.close();
     }
 };
+#endif //KIELASSEMBLER_GRAPH_H 
