@@ -49,7 +49,7 @@ int main( int argc, char **argv ) {
 
     std::string fail = "AGGCCCTGAAGC";
     std::string fail2 = "TAAGCTGATGTT"; // 4 good, 3bad
-    std::string fail3 = "ATGCTGTAGCTAGATATCGTAGCTATGCTAGCTAATHGCTATTTCGATGCGGTAGCTAGTGCTAGCATGCGTATGCATGCGTACGGCTAGCTAG"
+    std::string fail3 = "ATGCTGTAGCTAGATATCGTAGCTATGCTAGCTAATAGCTATTTCGATGCGGTAGCTAGTGCTAGCATGCGTATGCATGCGTACGGCTAGCTAG"
                         "TAGAGCTCGACTACGACGACGAGAGGGCATCGACGATTAGAGACTAGCGACTACGAGCTAGCGACT";
 
     //------------------------------------------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ int main( int argc, char **argv ) {
     {
         auto seq = fail3.substr(i, length );
         graphs.push_back(std::make_unique<DeBruijnGraphAlt>(DeBruijnGraphAlt(seq, kmerL)));
-        threads.push_back(std::thread(do_stuff, graphs.back().get()));
+        threads.emplace_back(std::thread(do_stuff, graphs.back().get()));
     }
 
     for(auto& it : threads)

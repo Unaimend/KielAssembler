@@ -13,6 +13,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include <thread>
+#include <sstream>
+#include <functional>
+
 class DeBruijnGraphAlt {
   public:
     static constexpr size_t NONE = std::numeric_limits<size_t>::max();
@@ -23,7 +27,7 @@ class DeBruijnGraphAlt {
     //std::vector<size_t> m_mergedWith;
     //std::vector<bool> m_isActive;
     //TODO: Ersetzen durch size_t und hashes zu speichern
-    std::unordered_map<std::string_view, size_t> m_kmerMap;
+    std::unordered_map<size_t, size_t> m_kmerMap;
 
     size_t head;
     size_t tail;
@@ -34,7 +38,7 @@ class DeBruijnGraphAlt {
   private:
     size_t find_or_create_node( std::string_view kmer ) {
         size_t index;
-        const auto it = m_kmerMap.find( kmer );
+        const auto it = m_kmerMap.find(std::hash<std::string_view>{}(kmer));
 
         if ( it == m_kmerMap.end() ) {
             index = create_node( kmer );
@@ -48,7 +52,7 @@ class DeBruijnGraphAlt {
     size_t create_node( std::string_view kmer ) {
         auto index = m_kmer.size();
 
-        m_kmerMap.emplace( kmer, index );
+        m_kmerMap.emplace( std::hash<std::string_view>{}(kmer), index );
         m_kmer.emplace_back( std::move( kmer ) );
         m_edgesIn.emplace_back();
         m_edgesOut.emplace_back();
@@ -116,6 +120,12 @@ class DeBruijnGraphAlt {
             m_hasEulerianWalk = ( neither == 0 && semiBalanced == 2 );
             m_hasEulerianCycle = ( neither == 0 && semiBalanced == 0 );
         }
+        std::ostringstream ss;
+
+        ss << std::this_thread::get_id();
+
+        std::string idstr = ss.str();
+        toDot(sequenceToAssemble + idstr + ".dot");
     }
 
     bool is_eulerian() {
@@ -130,7 +140,7 @@ class DeBruijnGraphAlt {
         return m_hasEulerianCycle;
     }
 
-    std::vector<size_t> get_euler_path() const {
+    /*std::vector<size_t> get_euler_path() const {
         // stack St;
         std::vector<size_t> stack;
         std::vector<size_t> euler_path;
@@ -166,11 +176,11 @@ class DeBruijnGraphAlt {
         }
 
         return euler_path;
-    }
+    }*/
 
     void toDot( const std::string &filename ) {
         std::ofstream file;
-        file.open( filename, std::ios::out );
+        file.open( "/home/td/dev/Bachelorarbeit/KielAssembler/dots/"+filename, std::ios::out );
         file << "digraph {\n";
 
         for ( size_t i = 0; i < m_edgesOut.size(); i++ ) {
