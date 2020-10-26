@@ -4,8 +4,8 @@ project(KielAssembler)
 # compiler options
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_FLAGS  "-Wall")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,--stack_size=10000000000")
+set(CMAKE_CXX_FLAGS  "-Wall -pthread"  )
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" )
 #target_compile_options(KielAssembler PRIVATE -O3)
 
 # prepare sources

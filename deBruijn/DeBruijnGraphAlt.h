@@ -14,13 +14,15 @@
 #include <vector>
 
 class DeBruijnGraphAlt {
+  public:
     static constexpr size_t NONE = std::numeric_limits<size_t>::max();
     std::string m_sequence;
     std::vector<std::string_view> m_kmer;
     std::vector<std::vector<size_t>> m_edgesIn;
     std::vector<std::vector<size_t>> m_edgesOut;
-    std::vector<size_t> m_mergedWith;
-    std::vector<bool> m_isActive;
+    //std::vector<size_t> m_mergedWith;
+    //std::vector<bool> m_isActive;
+    //TODO: Ersetzen durch size_t und hashes zu speichern
     std::unordered_map<std::string_view, size_t> m_kmerMap;
 
     size_t head;
@@ -50,8 +52,8 @@ class DeBruijnGraphAlt {
         m_kmer.emplace_back( std::move( kmer ) );
         m_edgesIn.emplace_back();
         m_edgesOut.emplace_back();
-        m_mergedWith.emplace_back( NONE );
-        m_isActive.emplace_back( true );
+        //m_mergedWith.emplace_back( NONE );
+        //m_isActive.emplace_back( true );
 
         return index;
     }
@@ -84,7 +86,8 @@ class DeBruijnGraphAlt {
             auto kmerR = std::string_view( m_sequence.data() + i + 1, kmerLength - 1 );
             auto iNodeL = find_or_create_node( kmerL );
             auto iNodeR = find_or_create_node( kmerR );
-
+            m_edgesOut.reserve(sequenceToAssemble.length() - (kmerLength -1));
+            m_edgesIn.reserve(sequenceToAssemble.length() - (kmerLength -1));
             m_edgesOut[iNodeL].push_back( iNodeR );
             m_edgesIn[iNodeR].push_back( iNodeL );
         }

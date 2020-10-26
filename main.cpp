@@ -9,8 +9,18 @@
 #include <fstream>
 #include <iostream>
 #include <sys/resource.h>
+#include <thread>
+#include <vector>
+#include <cmath>
 
 INITIALIZE_EASYLOGGINGPP
+
+void do_stuff(std::unique_ptr<DeBruijnGraphAlt>& graph)
+{
+    std::cout << graph->m_sequence << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+}
+
 
 int main( int argc, char **argv ) {
 
@@ -41,16 +51,35 @@ int main( int argc, char **argv ) {
     std::string fail3 = "ATGCTGTAGCTAGATATCGTAGCTATGCTAGCTAATHGCTATTTCGATGCGGTAGCTAGTGCTAGCATGCGTATGCATGCGTACGGCTAGCTAG"
                         "TAGAGCTCGACTACGACGACGAGAGGGCATCGACGATTAGAGACTAGCGACTACGAGCTAGCGACT";
 
+    //------------------------------------------------------------------------------------------------------------------
+    unsigned int thread_count = 32;
+    std::vector<std::thread> threads;
+    int length = std::ceil(fail3.length()/thread_count);
+    std::cout << fail3.substr(0, length) << std::endl;
+    std::vector<std::unique_ptr<DeBruijnGraphAlt>> graphs;
+    graphs.reserve(1000);
+    for(int i = length-1; i < fail3.length(); i+= (length-1))
+    {
+        auto seq = fail3.substr(i, length );
+        graphs.emplace_back(std::make_unique<DeBruijnGraphAlt>(DeBruijnGraphAlt(seq, 4)));
+        threads.emplace_back(std::thread(do_stuff, std::ref(graphs.back())));
+    }
+
+    for(auto& it : threads)
+    {
+        it.join();
+    }
+    //------------------------------------------------------------------------------------------------------------------
     auto build_start = std::chrono::system_clock::now();
-    auto a = DeBruijnGraph( fail, 4 );
+    auto a = DeBruijnGraphAlt( fail3, 4 );
     auto build_end = std::chrono::system_clock::now();
     LOG( INFO ) << "Text building took: " +
                        std::to_string( std::chrono::duration<double>( ( build_end - build_start ) ).count() / ( 60 ) ) +
                        " minutes";
     // std::cout << "Graph build" << a.kmerToNode.size() << std::endl;
-    auto tour = a.hasEulerianWalkdOrCycle();
+    //auto tour = a.hasEulerianWalkdOrCycle();
     // LOG(INFO) << "HEAD:     " + a.head->kmer ;
-    a.toDot();
+    //a.toDot();
     // TODO add tour to_dot
     // TODO find out if g is multimap or just 1 to many
     return 0;
