@@ -12,6 +12,7 @@
 #include <thread>
 #include <vector>
 #include <cmath>
+#include <cassert>
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -52,17 +53,20 @@ int main( int argc, char **argv ) {
                         "TAGAGCTCGACTACGACGACGAGAGGGCATCGACGATTAGAGACTAGCGACTACGAGCTAGCGACT";
 
     //------------------------------------------------------------------------------------------------------------------
+    int kmerL = 4;
     unsigned int thread_count = 32;
     std::vector<std::thread> threads;
     int length = std::ceil(fail3.length()/thread_count);
+
+    assert(length > kmerL);
     std::cout << fail3.substr(0, length) << std::endl;
     std::vector<std::unique_ptr<DeBruijnGraphAlt>> graphs;
-    graphs.reserve(1000);
-    for(int i = length-1; i < fail3.length(); i+= (length-1))
+    for(int i = length; i < fail3.length()-kmerL; i+= (length-kmerL))
     {
         auto seq = fail3.substr(i, length );
-        graphs.emplace_back(std::make_unique<DeBruijnGraphAlt>(DeBruijnGraphAlt(seq, 4)));
-        threads.emplace_back(std::thread(do_stuff, std::ref(graphs.back())));
+        std::cout << seq << std::endl;
+        graphs.emplace_back(std::make_unique<DeBruijnGraphAlt>(DeBruijnGraphAlt(seq, kmerL)));
+        //threads.emplace_back(std::thread(do_stuff, std::ref(graphs.back())));
     }
 
     for(auto& it : threads)

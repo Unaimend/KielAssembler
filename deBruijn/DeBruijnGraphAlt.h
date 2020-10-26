@@ -86,8 +86,6 @@ class DeBruijnGraphAlt {
             auto kmerR = std::string_view( m_sequence.data() + i + 1, kmerLength - 1 );
             auto iNodeL = find_or_create_node( kmerL );
             auto iNodeR = find_or_create_node( kmerR );
-            m_edgesOut.reserve(sequenceToAssemble.length() - (kmerLength -1));
-            m_edgesIn.reserve(sequenceToAssemble.length() - (kmerLength -1));
             m_edgesOut[iNodeL].push_back( iNodeR );
             m_edgesIn[iNodeR].push_back( iNodeL );
         }
