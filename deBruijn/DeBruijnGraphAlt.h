@@ -11,6 +11,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <map>
 #include <vector>
 
 #include <thread>
@@ -32,6 +33,8 @@ class DeBruijnGraphAlt {
     size_t head;
     size_t tail;
 
+    size_t m_kmer_length;
+
     bool m_hasEulerianWalk;
     bool m_hasEulerianCycle;
 
@@ -52,7 +55,8 @@ class DeBruijnGraphAlt {
     size_t create_node( std::string_view kmer ) {
         auto index = m_kmer.size();
 
-        m_kmerMap.emplace( std::hash<std::string_view>{}(kmer), index );
+        m_kmerMap[std::hash<std::string_view>{}(kmer)]= index ;
+
         m_kmer.emplace_back( std::move( kmer ) );
         m_edgesIn.emplace_back();
         m_edgesOut.emplace_back();
@@ -84,10 +88,27 @@ class DeBruijnGraphAlt {
     }
 
   public:
-    DeBruijnGraphAlt( const std::string &sequenceToAssemble, size_t kmerLength ) : m_sequence( sequenceToAssemble ) {
-        for ( size_t i = 0; i < m_sequence.size() - ( kmerLength - 1 ); i++ ) {
-            auto kmerL = std::string_view( m_sequence.data() + i, kmerLength - 1 );
-            auto kmerR = std::string_view( m_sequence.data() + i + 1, kmerLength - 1 );
+    DeBruijnGraphAlt( const std::string &sequenceToAssemble, size_t kmerLength ) : m_sequence( sequenceToAssemble ), m_kmer_length(kmerLength) {
+
+    }
+
+    bool is_eulerian() {
+        return has_eulerian_cycle() || has_eulerian_walk();
+    }
+
+    bool has_eulerian_walk() {
+        return m_hasEulerianWalk;
+    }
+
+    bool has_eulerian_cycle() {
+        return m_hasEulerianCycle;
+    }
+
+    void build()
+    {
+        for ( size_t i = 0; i < m_sequence.size() - ( m_kmer_length- 1 ); i++ ) {
+            auto kmerL = std::string_view( m_sequence.data() + i, m_kmer_length- 1 );
+            auto kmerR = std::string_view( m_sequence.data() + i + 1, m_kmer_length- 1 );
             auto iNodeL = find_or_create_node( kmerL );
             auto iNodeR = find_or_create_node( kmerR );
             m_edgesOut[iNodeL].push_back( iNodeR );
@@ -125,19 +146,7 @@ class DeBruijnGraphAlt {
         ss << std::this_thread::get_id();
 
         std::string idstr = ss.str();
-        toDot(sequenceToAssemble + idstr + ".dot");
-    }
-
-    bool is_eulerian() {
-        return has_eulerian_cycle() || has_eulerian_walk();
-    }
-
-    bool has_eulerian_walk() {
-        return m_hasEulerianWalk;
-    }
-
-    bool has_eulerian_cycle() {
-        return m_hasEulerianCycle;
+        toDot(m_sequence + idstr + ".dot");
     }
 
     /*std::vector<size_t> get_euler_path() const {

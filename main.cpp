@@ -18,8 +18,8 @@ INITIALIZE_EASYLOGGINGPP
 
 void do_stuff(DeBruijnGraphAlt* graph)
 {
-    std::cout << graph->m_sequence << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    std::cout <<std::this_thread::get_id() << std::endl;
+
 }
 
 
@@ -28,8 +28,9 @@ int main( int argc, char **argv ) {
     std::string line;
     std::string text;
     auto load_start = std::chrono::system_clock::now();
-    std::ifstream myfile( "../data/simulated/ecoli/ecoli1.fna" );
+    std::ifstream myfile( "/home/td/dev/Bachelorarbeit/data/simulated/ecoli/ecoli1.fna" );
     auto record = bioio::read_fasta( myfile );
+    std::cout << record.size() << std::endl;
     auto load_end = std::chrono::system_clock::now();
     auto append_start = std::chrono::system_clock::now();
     for ( const auto &it : record ) {
@@ -46,36 +47,35 @@ int main( int argc, char **argv ) {
                        std::to_string( (float)text.size() / ( 1024.0 * 1024.0 ) );
     LOG( INFO ) << "GigaBytes loaded for the text string: " +
                        std::to_string( (float)text.size() / ( 1024.0 * 1024.0 * 1024.0 ) );
-
     std::string fail = "AGGCCCTGAAGC";
     std::string fail2 = "TAAGCTGATGTT"; // 4 good, 3bad
     std::string fail3 = "ATGCTGTAGCTAGATATCGTAGCTATGCTAGCTAATAGCTATTTCGATGCGGTAGCTAGTGCTAGCATGCGTATGCATGCGTACGGCTAGCTAG"
                         "TAGAGCTCGACTACGACGACGAGAGGGCATCGACGATTAGAGACTAGCGACTACGAGCTAGCGACT";
 
     //------------------------------------------------------------------------------------------------------------------
-    int kmerL = 3;
-    unsigned int thread_count = 16;
+    auto build_start = std::chrono::system_clock::now();
+    int kmerL = 31;
+    unsigned int thread_count = 4;
     std::vector<std::thread> threads;
-    int length = std::ceil(fail3.length()/thread_count);
+    int length = std::ceil(text.length()/thread_count);
 
-    assert(length > kmerL);
+  // assert(length > kmerL);
     //std::cout << fail3.substr(0, length) << std::endl;
     std::vector<std::unique_ptr<DeBruijnGraphAlt>> graphs;
-    for(int i =0 ; i < fail3.length()-kmerL; i+= (length-kmerL))
+    for(int i =0 ; i < text.length()-kmerL; i+= (length-kmerL))
     {
-        auto seq = fail3.substr(i, length );
+        auto seq = text.substr(i, length );
         graphs.push_back(std::make_unique<DeBruijnGraphAlt>(DeBruijnGraphAlt(seq, kmerL)));
-        threads.emplace_back(std::thread(do_stuff, graphs.back().get()));
+        threads.emplace_back(&DeBruijnGraphAlt::build, graphs.back().get());
     }
 
     for(auto& it : threads)
     {
         it.join();
     }
-    //------------------------------------------------------------------------------------------------------------------
-    auto build_start = std::chrono::system_clock::now();
-    //auto a = DeBruijnGraphAlt( fail3, 4 );
     auto build_end = std::chrono::system_clock::now();
+    //------------------------------------------------------------------------------------------------------------------
+    //auto a = DeBruijnGraphAlt( fail3, 4 );
     LOG( INFO ) << "Text building took: " +
                        std::to_string( std::chrono::duration<double>( ( build_end - build_start ) ).count() / ( 60 ) ) +
                        " minutes";
