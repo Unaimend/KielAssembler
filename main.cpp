@@ -16,13 +16,6 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-void do_stuff(DeBruijnGraphAlt* graph)
-{
-    std::cout <<std::this_thread::get_id() << std::endl;
-
-}
-
-
 int main( int argc, char **argv ) {
 
     std::string line;
@@ -59,8 +52,7 @@ int main( int argc, char **argv ) {
     std::vector<std::thread> threads;
     int length = std::ceil(text.length()/thread_count);
 
-  // assert(length > kmerL);
-    //std::cout << fail3.substr(0, length) << std::endl;
+    assert(length > kmerL);
     std::vector<std::unique_ptr<DeBruijnGraphAlt>> graphs;
     for(int i =0 ; i < text.length()-kmerL; i+= (length-kmerL))
     {

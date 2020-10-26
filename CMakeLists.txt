@@ -21,4 +21,4 @@ add_subdirectory(dataStructures)
 
 add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS})
 
-#target_compile_options(KielAssembler PRIVATE -O3)
+target_compile_options(KielAssembler PRIVATE -O3)
