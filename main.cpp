@@ -16,7 +16,7 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-void do_stuff(std::unique_ptr<DeBruijnGraphAlt>& graph)
+void do_stuff(DeBruijnGraphAlt* graph)
 {
     std::cout << graph->m_sequence << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(10000));
@@ -53,20 +53,19 @@ int main( int argc, char **argv ) {
                         "TAGAGCTCGACTACGACGACGAGAGGGCATCGACGATTAGAGACTAGCGACTACGAGCTAGCGACT";
 
     //------------------------------------------------------------------------------------------------------------------
-    int kmerL = 4;
-    unsigned int thread_count = 32;
+    int kmerL = 3;
+    unsigned int thread_count = 16;
     std::vector<std::thread> threads;
     int length = std::ceil(fail3.length()/thread_count);
 
     assert(length > kmerL);
-    std::cout << fail3.substr(0, length) << std::endl;
+    //std::cout << fail3.substr(0, length) << std::endl;
     std::vector<std::unique_ptr<DeBruijnGraphAlt>> graphs;
-    for(int i = length; i < fail3.length()-kmerL; i+= (length-kmerL))
+    for(int i =0 ; i < fail3.length()-kmerL; i+= (length-kmerL))
     {
         auto seq = fail3.substr(i, length );
-        std::cout << seq << std::endl;
-        graphs.emplace_back(std::make_unique<DeBruijnGraphAlt>(DeBruijnGraphAlt(seq, kmerL)));
-        //threads.emplace_back(std::thread(do_stuff, std::ref(graphs.back())));
+        graphs.push_back(std::make_unique<DeBruijnGraphAlt>(DeBruijnGraphAlt(seq, kmerL)));
+        threads.push_back(std::thread(do_stuff, graphs.back().get()));
     }
 
     for(auto& it : threads)
@@ -75,7 +74,7 @@ int main( int argc, char **argv ) {
     }
     //------------------------------------------------------------------------------------------------------------------
     auto build_start = std::chrono::system_clock::now();
-    auto a = DeBruijnGraphAlt( fail3, 4 );
+    //auto a = DeBruijnGraphAlt( fail3, 4 );
     auto build_end = std::chrono::system_clock::now();
     LOG( INFO ) << "Text building took: " +
                        std::to_string( std::chrono::duration<double>( ( build_end - build_start ) ).count() / ( 60 ) ) +
