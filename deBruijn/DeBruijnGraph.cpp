@@ -57,9 +57,9 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
     merge();
     calculate_nodes();
 
-    return std::optional<TourType>{};
     //TODO REBUILD kmerToNode
-    /*TourType tour{};
+
+    TourType tour{};
     Node* src =  kmerToNode.begin()->second.get();
 
     std::stack<Node*> nodes;
@@ -112,7 +112,7 @@ std::optional<DeBruijnGraph::TourType> DeBruijnGraph::hasEulerianWalkdOrCycle(){
         return std::optional<TourType>{t};
     }
     return std::optional<TourType>{tour};
-    */
+
 
 }
 

@@ -14,6 +14,7 @@
 #include <vector>
 
 class DeBruijnGraphAlt {
+  public:
     static constexpr size_t NONE = std::numeric_limits<size_t>::max();
     std::string m_sequence;
     std::vector<std::string_view> m_kmer;
