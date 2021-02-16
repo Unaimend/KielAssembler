@@ -6,7 +6,6 @@ set(SOURCE
 
 set(HEADERS
   ${HEADERS}
-  ${CMAKE_CURRENT_SOURCE_DIR}/DeBruijnGraph.h
   ${CMAKE_CURRENT_SOURCE_DIR}/DeBruijnGraphAlt.h
-  PARENT_SCOPE
+        PARENT_SCOPE
 )

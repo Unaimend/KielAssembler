@@ -196,9 +196,11 @@ void DeBruijnGraph::calculate_nodes()
     }
 }
 
-void DeBruijnGraph::toDot() {
+
+
+void DeBruijnGraph::toDot(const std::string& filename) {
     std::ofstream myfile;
-    myfile.open ("example.dot", std::ios::out );
+    myfile.open (filename+".dot", std::ios::out );
     myfile << "digraph {\n";
     for(const auto& it : kmerToNode)
     {
@@ -264,6 +266,9 @@ void DeBruijnGraph::dfs(Node* src_)
         ++beg;
     }
 }
+
+
+
 
 void DeBruijnGraph::merge()
 {

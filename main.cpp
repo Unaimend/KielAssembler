@@ -70,12 +70,27 @@ int main( int argc, char **argv ) {
 
     auto build_start = std::chrono::system_clock::now();
     //Build a DeBruijn Graph from the supplied fast file
-    auto graph = DeBruijnGraph(text, kmer_length );
+    auto graph = DeBruijnGraphAlt(text, kmer_length );
     auto build_end = std::chrono::system_clock::now();
     LOG( INFO ) << "Text building took: " +
                        std::to_string( std::chrono::duration<double>( ( build_end - build_start ) ).count() / ( 60 ) ) +
                        " minutes";
-    auto tour_start = std::chrono::system_clock::now();
+
+    graph.to_contigs(0);
+    graph.toDot("test1");
+
+
+
+
+
+
+
+
+
+
+
+
+    /*auto tour_start = std::chrono::system_clock::now();
     auto tour = graph.hasEulerianWalkdOrCycle();
     auto tour_end = std::chrono::system_clock::now();
     LOG( INFO ) << "Tour building took: " +
@@ -84,7 +99,8 @@ int main( int argc, char **argv ) {
     for(auto& it : tour.value())
     {
         std::cout << it->kmer << std::endl;
-    }
+    }*/
+    graph.toDot("bravo");
     // TODO add tour to_dot
     // TODO find out if g is multimap or just 1 to many
     return 0;

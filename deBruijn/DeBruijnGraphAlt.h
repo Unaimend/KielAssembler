@@ -1,8 +1,14 @@
 //
+// Created by td on 2/5/21.
+//
+
+#ifndef INC_4C5222FFA8CA43E1A84139B063DA915D
+#define INC_4C5222FFA8CA43E1A84139B063DA915D
+//
 // Created by Benno Doerr on 10/21/2020.
 //
 
-#ifndef KIELASSEMBLER_GRAPH_H	
+#ifndef KIELASSEMBLER_GRAPH_H
 #define KIELASSEMBLER_GRAPH_H
 
 #include <cmath>
@@ -12,17 +18,21 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-
+#include <stack>
 class DeBruijnGraphAlt {
   public:
     static constexpr size_t NONE = std::numeric_limits<size_t>::max();
+    using ID = size_t;
     std::string m_sequence;
+    //Vector off k_mers
     std::vector<std::string_view> m_kmer;
-    std::vector<std::vector<size_t>> m_edgesIn;
-    std::vector<std::vector<size_t>> m_edgesOut;
-    std::vector<size_t> m_mergedWith;
+    //All incoming edges for a
+    std::vector<std::vector<ID>> m_edgesIn;
+    std::vector<std::vector<ID>> m_edgesOut;
     std::vector<bool> m_isActive;
-    std::unordered_map<std::string_view, size_t> m_kmerMap;
+    //Connects k-mer to its ID, the in is just an incremented size_value
+    //to which one is added for every new k_mer
+    std::unordered_map<std::string_view, ID> m_kmerMap;
 
     size_t head;
     size_t tail;
@@ -36,11 +46,14 @@ class DeBruijnGraphAlt {
         const auto it = m_kmerMap.find( kmer );
 
         if ( it == m_kmerMap.end() ) {
+            //If no same k-mer is found we have to create a new one
             index = create_node( kmer );
+            //and set the index
         } else {
+            //Else set the id
             index = it->second;
         }
-
+        //And return it
         return index;
     }
 
@@ -48,10 +61,9 @@ class DeBruijnGraphAlt {
         auto index = m_kmer.size();
 
         m_kmerMap.emplace( kmer, index );
-        m_kmer.emplace_back( std::move( kmer ) );
+        m_kmer.emplace_back( kmer );
         m_edgesIn.emplace_back();
         m_edgesOut.emplace_back();
-        m_mergedWith.emplace_back( NONE );
         m_isActive.emplace_back( true );
 
         return index;
@@ -168,6 +180,30 @@ class DeBruijnGraphAlt {
         return euler_path;
     }
 
+    void to_contigs(ID start_node)
+    {
+        std::vector<bool> marked(m_kmerMap.size(), false);
+        std::stack<ID> nodes;
+        nodes.push(start_node);
+        while(!nodes.empty())
+        {
+            auto cur_node = nodes.top();
+            nodes.pop();
+            if(!marked[cur_node])
+            {
+                std::cout << cur_node << std::endl;
+                marked[cur_node] = true;
+            }
+
+            for(auto it : m_edgesOut[cur_node])
+            {
+                if(!marked[it])
+                {
+                    nodes.push(it);
+                }
+            }
+        }
+    }
     void toDot( const std::string &filename ) {
         std::ofstream file;
         file.open( filename, std::ios::out );
@@ -183,4 +219,6 @@ class DeBruijnGraphAlt {
         file.close();
     }
 };
-#endif //KIELASSEMBLER_GRAPH_H 
+#endif //KIELASSEMBLER_GRAPH_H
+
+#endif // INC_4C5222FFA8CA43E1A84139B063DA915D
