@@ -33,6 +33,8 @@ class DeBruijnGraphAlt {
     //Connects k-mer to its ID, the in is just an incremented size_value
     //to which one is added for every new k_mer
     std::unordered_map<std::string_view, ID> m_kmerMap;
+    //Only in DEBUG, stores all node ids which are safe to merge, should be added by to_contig
+    std::vector<ID> safe_nodes;
 
     size_t head;
     size_t tail;
@@ -192,6 +194,42 @@ class DeBruijnGraphAlt {
             if(!marked[cur_node])
             {
                 std::cout << cur_node << std::endl;
+                auto outgoing = m_edgesOut[cur_node];
+                auto incoming = m_edgesIn[cur_node];
+                if((outgoing.size() == 1) && (incoming.size()  <= 1))
+                {
+                    //merge the current node with the next node
+                    //todo this whe have to check if the next node is safe
+                    //This is safe since we know that we have exactly one outgoing edge
+                    //Todo Extera case for last node
+                    auto outgoing_next = m_edgesOut[outgoing[0]];
+                    auto incoming_next = m_edgesIn[outgoing[0]];
+                    //check if next node is safe
+                    //We have to check that our current_node is the only incoming node
+                    //and also that the next_node does not have more then one outgoing edge
+                    //Zero is also fine because then we have reached an end
+                    if(outgoing_next.size() <= 1 && incoming_next.size() == 1)
+                    {
+                        //both of these will no longer exists
+
+                        //Get both k_mers
+                        auto& kmer1 = m_kmer[cur_node];
+                        auto& kmer2 = m_kmer[outgoing[0]];
+                        //merge kmer2 into kmer1
+                        //TODO Make a new strinz view which is just larger
+                        //kmer1 += kmer2;
+                        //add outgoing edges from kmer2 to kmer1 so the graph stays connected
+                        for(const auto it : outgoing_next)
+                        {
+                            m_edgesOut[cur_node].push_back(it);
+                        }
+                        //Remove both k_mers from the string_view to id map
+                        //And new string_view to the map
+                        //Remove all incoming and outgoing edges from k_mer2, or remove it from both vectors not sure atm
+                        //We also have to update the incoming_edge from the node after next_node, i.e. add our new node and remove the old one
+                        //Delete old k_mers from vector, we have to this since after the merge
+                    }
+                }
                 marked[cur_node] = true;
             }
 
@@ -208,7 +246,20 @@ class DeBruijnGraphAlt {
         std::ofstream file;
         file.open( filename, std::ios::out );
         file << "digraph {\n";
+        std::cout << "SAFE NODES" <<  safe_nodes.size() << std::endl;
+        for ( size_t i = 0; i < m_edgesOut.size(); i++ ) {
+            auto k = m_kmer[i];
+            if(std::find(safe_nodes.begin(), safe_nodes.end(), i) != safe_nodes.end())
+            {
+                file << k << "[color = green]" << "\n";
 
+            } else
+            {
+                file << k << "\n";
+
+            }
+        }
+        file << '\n';
         for ( size_t i = 0; i < m_edgesOut.size(); i++ ) {
             for ( const auto &j : m_edgesOut[i] ) {
                 file << m_kmer[i] << "->" << m_kmer[j] << "\n";
